@@ -12,6 +12,8 @@ uvicorn --reload app:app --port "1111"
 ```
 далее переходим на http://127.0.0.1:1111/orders
 
+CultureDrive.apk - рабочее апк
+
 app.py - файл для запуска сайта
 
 calculator.py - расчеты
