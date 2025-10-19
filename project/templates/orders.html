@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои заказы | TaxiApp</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/orders.css">
+</head>
+<body>
+    <div class="phone-mockup">
+        <div class="phone-notch"></div>
+        <div class="app-container">
+            <div class="status-bar">
+                <div class="status-time">14:25</div>
+                <div class="status-icons">
+                    <i class="fas fa-signal"></i>
+                    <i class="fas fa-wifi"></i>
+                    <i class="fas fa-battery-three-quarters"></i>
+                </div>
+            </div>
+            
+            <header class="header">
+                <div class="header-container">
+                    <a href="passenger" class="back-btn">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div class="logo">
+                        <div class="logo-icon">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <span>Мои заказы</span>
+                    </div>
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+            </header>
+
+            <main class="main-content">
+                <div class="orders-header">
+                    <h2 class="section-title">История заказов</h2>
+                </div>
+                
+                <div id="ordersList" class="orders-list">
+                    <div class="loading-state">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Загрузка заказов...</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="/static/orders.js"></script>
+</body>
+</html>

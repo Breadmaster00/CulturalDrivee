@@ -1,0 +1,503 @@
+    <!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Доступные заказы | TaxiApp</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .filter-section {
+            padding: 0 16px;
+            margin-bottom: 16px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            background: white;
+            font-size: 12px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .orders-count {
+            color: #666;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 16px;
+            padding: 0 16px;
+        }
+
+        .orders-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 0 16px;
+            margin-bottom: 20px;
+        }
+
+        .order-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            border: 2px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .order-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .order-id {
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .order-date {
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .order-body {
+            margin-bottom: 12px;
+        }
+
+        .order-route {
+            margin-bottom: 12px;
+        }
+
+        .route-point {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .order-details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .order-detail {
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .order-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .order-price {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .order-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .order-status.available {
+            background: #e8f5e8;
+            color: var(--success);
+        }
+
+        .order-badge {
+            background: var(--success);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            margin-left: 8px;
+        }
+
+        .order-badge.new {
+            background: var(--secondary);
+        }
+
+        .order-badge.high-price {
+            background: var(--warning);
+            color: #000;
+        }
+
+        .order-badge.with-pets {
+            background: #8B4513;
+        }
+
+        .refresh-section {
+            text-align: center;
+            padding: 0 16px;
+            margin-top: 20px;
+        }
+
+        .loading-state, .empty-state, .error-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .loading-state i, .empty-state i, .error-state i {
+            font-size: 48px;
+            color: #ccc;
+            margin-bottom: 16px;
+        }
+
+        .empty-state p, .error-state p {
+            margin-bottom: 16px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-mockup">
+        <div class="phone-notch"></div>
+        <div class="app-container">
+            <div class="status-bar">
+                <div class="status-time" id="currentTime">14:25</div>
+                <div class="status-icons">
+                    <i class="fas fa-signal"></i>
+                    <i class="fas fa-wifi"></i>
+                    <i class="fas fa-battery-three-quarters"></i>
+                </div>
+            </div>
+            
+            <header class="header">
+                <div class="header-container">
+                    <a href="index.html" class="back-btn">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div class="logo">
+                        <div class="logo-icon">
+                            <i class="fas fa-taxi"></i>
+                        </div>
+                        <span>Доступные заказы</span>
+                    </div>
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+            </header>
+
+            <main class="main-content">
+                <div>
+                    <h2 class="section-title">Выберите заказ</h2>
+                    
+                    <div class="filter-section">
+                        <div class="filter-buttons">
+                            <button class="filter-btn active" onclick="setFilter('all')">Все заказы</button>
+                            <button class="filter-btn" onclick="setFilter('near')">Рядом</button>
+                            <button class="filter-btn" onclick="setFilter('high-price')">Высокая цена</button>
+                            <button class="filter-btn" onclick="setFilter('new')">Новые</button>
+                            <button class="filter-btn" onclick="setFilter('with-pets')">С животными</button>
+                        </div>
+                    </div>
+                    
+                    <div class="orders-count" id="ordersCount">Загружаем заказы...</div>
+                    
+                    <div id="ordersList" class="orders-list">
+                        <div class="loading-state">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Загрузка заказов...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="refresh-section">
+                        <button class="btn btn-primary" onclick="loadOrders()" id="refreshBtn">
+                            <i class="fas fa-sync-alt"></i>
+                            Обновить список
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        let allOrders = [];
+        let currentFilter = 'all';
+
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.getHours().toString().padStart(2, '0') + ':' + 
+                             now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('currentTime').textContent = timeString;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTime();
+            setInterval(updateTime, 60000);
+            loadOrders();
+        });
+
+        async function loadOrders() {
+            const container = document.getElementById("ordersList");
+            const refreshBtn = document.getElementById('refreshBtn');
+            
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Загрузка...';
+            refreshBtn.disabled = true;
+            
+            container.innerHTML = `
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Загрузка заказов...</p>
+                </div>
+            `;
+
+            try {
+                const resp = await fetch("/get_orders");
+                const data = await resp.json();
+
+                allOrders = data.orders || [];
+                
+                if (!data.success || !allOrders.length) {
+                    document.getElementById("ordersCount").textContent = "Нет доступных заказов";
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-search"></i>
+                            <p>Заказов пока нет</p>
+                            <small>Новые заказы появятся здесь</small>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Добавляем метки для заказов
+                allOrders = allOrders.map((order, index) => {
+                    const badges = [];
+                    if (index < 3) badges.push('new');
+                    if (order.passengerPrice > 300) badges.push('high-price');
+                    if (order.pets && order.pets !== 'no') badges.push('with-pets');
+                    
+                    return { 
+                        ...order, 
+                        badges
+                    };
+                });
+
+                document.getElementById("ordersCount").textContent = `Найдено заказов: ${allOrders.length}`;
+                applyFilter();
+
+            } catch (err) {
+                console.error("Ошибка загрузки заказов:", err);
+                document.getElementById("ordersCount").textContent = "Ошибка загрузки заказов";
+                container.innerHTML = `
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Ошибка загрузки заказов</p>
+                        <button class="btn btn-secondary" onclick="loadOrders()">
+                            <i class="fas fa-redo"></i>
+                            Попробовать снова
+                        </button>
+                    </div>
+                `;
+            } finally {
+                refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Обновить список';
+                refreshBtn.disabled = false;
+            }
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            applyFilter();
+        }
+
+        function applyFilter() {
+            let filteredOrders = [...allOrders];
+            
+            switch (currentFilter) {
+                case 'near':
+                    filteredOrders = filteredOrders.filter(order => 
+                        order.badges && order.badges.includes('new')
+                    );
+                    break;
+                case 'high-price':
+                    filteredOrders = filteredOrders.filter(order => 
+                        order.badges && order.badges.includes('high-price')
+                    );
+                    break;
+                case 'new':
+                    filteredOrders = filteredOrders.filter(order => 
+                        order.badges && order.badges.includes('new')
+                    );
+                    break;
+                case 'with-pets':
+                    filteredOrders = filteredOrders.filter(order => 
+                        order.badges && order.badges.includes('with-pets')
+                    );
+                    break;
+            }
+            
+            renderOrdersList(filteredOrders);
+        }
+
+        function renderOrdersList(orders) {
+            const container = document.getElementById("ordersList");
+            
+            if (!orders.length) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-filter"></i>
+                        <p>Заказы не найдены</p>
+                        <small>Попробуйте изменить фильтр</small>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = "";
+            orders.forEach(order => {
+                const orderElement = document.createElement("div");
+                orderElement.classList.add("order-card");
+                orderElement.onclick = () => selectOrder(order);
+                
+                // Генерация бейджей
+                const badgesHTML = order.badges ? order.badges.map(badge => 
+                    `<span class="order-badge ${badge}">${getBadgeText(badge)}</span>`
+                ).join('') : '';
+                
+                orderElement.innerHTML = `
+                    <div class="order-header">
+                        <div class="order-id">
+                            <i class="fas fa-hashtag"></i>
+                            Заказ #${order.id}
+                            ${badgesHTML}
+                        </div>
+                        <div class="order-date">
+                            <i class="fas fa-clock"></i>
+                            ${getTimeText(order.time)}
+                        </div>
+                    </div>
+                    <div class="order-body">
+                        <div class="order-route">
+                            <div class="route-point">
+                                <i class="fas fa-circle" style="color: var(--success);"></i>
+                                <span>${truncateAddress(order.fromAddress || 'Адрес не указан')}</span>
+                            </div>
+                            <div class="route-point">
+                                <i class="fas fa-flag" style="color: var(--secondary);"></i>
+                                <span>${truncateAddress(order.toAddress || 'Адрес не указан')}</span>
+                            </div>
+                        </div>
+                        <div class="order-details-grid">
+                            <div class="order-detail">
+                                <i class="fas fa-users"></i>
+                                <span>${order.passengers || '1'} чел.</span>
+                            </div>
+                            <div class="order-detail">
+                                <i class="fas fa-paw"></i>
+                                <span>${getPetsText(order.pets)}</span>
+                            </div>
+                            <div class="order-detail">
+                                <i class="fas fa-suitcase"></i>
+                                <span>${getBaggageText(order.baggage)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="order-footer">
+                        <div class="order-price">
+                            <i class="fas fa-ruble-sign"></i>
+                            ${order.passengerPrice || '0'}
+                        </div>
+                        <div class="order-status available">
+                            <i class="fas fa-check-circle"></i>
+                            Доступен
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(orderElement);
+            });
+        }
+
+        function selectOrder(order) {
+            localStorage.setItem('selectedOrder', JSON.stringify(order));
+            window.location.href = 'driver_order_details.html';
+        }
+
+        function truncateAddress(address, maxLength = 40) {
+            if (!address || address.length <= maxLength) return address;
+            return address.substring(0, maxLength) + '...';
+        }
+
+        function getPetsText(pets) {
+            const petsMap = { no: "Нет", small: "Маленькие", medium: "Средние", large: "Крупные" };
+            return petsMap[pets] || "Нет";
+        }
+
+        function getTimeText(time) {
+            const timeMap = { now: "Сейчас", "15min": "Через 15 мин", "30min": "Через 30 мин", "1hour": "Через 1 час" };
+            return timeMap[time] || "Сейчас";
+        }
+
+        function getBaggageText(baggage) {
+            const baggageMap = { no: "Нет", small: "Маленький", medium: "Средний", large: "Крупный" };
+            return baggageMap[baggage] || "Нет";
+        }
+
+        function getBadgeText(badge) {
+            const badgeMap = {
+                'new': 'Новый',
+                'high-price': 'Высокая цена',
+                'with-pets': 'С животными'
+            };
+            return badgeMap[badge] || badge;
+        }
+    </script>
+</body>
+</html>

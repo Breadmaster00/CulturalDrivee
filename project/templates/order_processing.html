@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Обработка заказа | TaxiApp</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        /* Стили остаются без изменений */
+    </style>
+</head>
+<body>
+    <div class="phone-mockup">
+        <div class="phone-notch"></div>
+        <div class="app-container">
+            <!-- Шапка -->
+            <div class="status-bar">
+                <div class="status-time">14:25</div>
+                <div class="status-icons">
+                    <i class="fas fa-signal"></i>
+                    <i class="fas fa-wifi"></i>
+                    <i class="fas fa-battery-three-quarters"></i>
+                </div>
+            </div>
+            
+            <header class="header">
+                <div class="header-container">
+                    <button class="back-btn" onclick="goBack()">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="logo">
+                        <div class="logo-icon">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <span>Обработка заказа</span>
+                    </div>
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+            </header>
+
+            <main class="main-content">
+                <!-- Информация о заказе -->
+                <div class="screen-header">
+                    <button class="back-to-orders-btn" onclick="goBack()">
+                        <i class="fas fa-arrow-left"></i>
+                        К списку заказов
+                    </button>
+                    <h2 class="section-title">Обработка заказа</h2>
+                </div>
+
+                <div class="selected-order-info">
+                    <div class="selected-order-header">
+                        <div class="selected-order-id" id="processingOrderId">Заказ #...</div>
+                        <div class="order-date" id="processingOrderDate"></div>
+                    </div>
+                    <div class="order-route">
+                        <div class="route-point">
+                            <i class="fas fa-circle" style="color: var(--success);"></i>
+                            <span id="processingFromAddress">...</span>
+                        </div>
+                        <div class="route-point">
+                            <i class="fas fa-flag" style="color: var(--secondary);"></i>
+                            <span id="processingToAddress">...</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="address-inputs">
+                    <div class="address-input">
+                        <i class="fas fa-circle" style="color: var(--success);"></i>
+                        <input type="text" placeholder="Откуда" id="fromAddress" value="Загрузка..." readonly>
+                    </div>
+                    <div class="address-input">
+                        <i class="fas fa-flag" style="color: var(--secondary);"></i>
+                        <input type="text" placeholder="Куда" id="toAddress" value="Загрузка..." readonly>
+                    </div>
+                </div>
+                
+                <div class="order-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Пассажиры</span>
+                        <span class="detail-value" id="passengers">...</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Питомцы</span>
+                        <span class="detail-value" id="pets">...</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Время</span>
+                        <span class="detail-value" id="time">...</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Багаж</span>
+                        <span class="detail-value" id="baggage">...</span>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="map-section">
+                    <div class="map-header">
+                        <div>
+                            <i class="fas fa-map"></i>
+                            <span>Маршрут</span>
+                        </div>
+                        <button id="toggleMapBtn" class="btn btn-secondary" style="padding: 6px 10px; font-size: 12px; ">
+                            <i class="fas fa-expand-arrows-alt"></i>
+                        </button>
+                    </div>
+                    <div class="map-container">
+                        <div id="map"></div>
+                    </div>
+                    <div class="map-controls">
+                        <div class="map-hint">
+                            <i class="fas fa-info-circle"></i>
+                            Маршрут построен на основе заказа
+                        </div>
+                        <button id="clearPointsBtn" class="btn btn-secondary" style="padding: 6px 10px; font-size: 12px;">
+                            <i class="fas fa-eraser"></i>
+                            Очистить
+                        </button>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="ml-section">
+                    <div class="ml-header">
+                        <i class="fas fa-brain"></i>
+                        <span>Анализ цен ML</span>
+                    </div>
+                    <div class="ml-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span id="mlStatus">Загружаем ML-анализ оптимальных цен...</span>
+                    </div>
+                </div>
+
+                <div class="price-strategies">
+                    <div class="strategy-header">
+                        <div class="strategy-col">СТРАТЕГИЯ</div>
+                        <div class="strategy-col">ЦЕНА</div>
+                        <div class="strategy-col">ВЕРОЯТНОСТЬ</div>
+                        <div class="strategy-col">ДОХОД</div>
+                    </div>
+                    
+                    <div class="price-option strategy-current selected" onclick="selectPriceOption(this)">
+                        <div class="strategy-col strategy-name">ТЕКУЩАЯ</div>
+                        <div class="strategy-col strategy-price" id="currentPrice">...</div>
+                        <div class="strategy-col strategy-probability" id="currentProb">...</div>
+                        <div class="strategy-col strategy-income" id="currentIncome">...</div>
+                    </div>
+                    
+                    <div class="price-option strategy-precise" onclick="selectPriceOption(this)">
+                        <div class="strategy-col strategy-name">ТОЧНЫЙ</div>
+                        <div class="strategy-col strategy-price" id="precisePrice">...</div>
+                        <div class="strategy-col strategy-probability" id="preciseProb">...</div>
+                        <div class="strategy-col strategy-income" id="preciseIncome">...</div>
+                    </div>
+                    
+                    <div class="price-option strategy-moderate" onclick="selectPriceOption(this)">
+                        <div class="strategy-col strategy-name">УМЕРЕННЫЙ</div>
+                        <div class="strategy-col strategy-price" id="moderatePrice">...</div>
+                        <div class="strategy-col strategy-probability" id="moderateProb">...</div>
+                        <div class="strategy-col strategy-income" id="moderateIncome">...</div>
+                    </div>
+                    
+                    <div class="price-option strategy-risky" onclick="selectPriceOption(this)">
+                        <div class="strategy-col strategy-name">РИСКОВАННЫЙ</div>
+                        <div class="strategy-col strategy-price" id="riskyPrice">...</div>
+                        <div class="strategy-col strategy-probability" id="riskyProb">...</div>
+                        <div class="strategy-col strategy-income" id="riskyIncome">...</div>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="price-section">
+                    <div class="price-title">Ваше предложение (₽)</div>
+                    <div class="price-input-container">
+                        <input type="number" class="price-amount" id="driverPrice" value="350" min="0" step="10" style="appearance: none; -moz-appearance: textfield;">
+                        <span class="currency">₽</span>
+                    </div>
+                </div>
+
+                <div class="price-comparison">
+                    <div class="comparison-item">
+                        <span class="comparison-label">Цена пассажира:</span>
+                        <span class="comparison-value" id="passengerPriceValue">...</span>
+                    </div>
+                    <div class="comparison-item">
+                        <span class="comparison-label">Рекомендуемая ML:</span>
+                        <span class="comparison-value" id="mlRecommendedPrice">...</span>
+                    </div>
+                    <div class="comparison-item your-price">
+                        <span class="comparison-label">Ваша цена:</span>
+                        <span class="comparison-value" id="yourPriceValue">350 ₽</span>
+                    </div>
+                </div>
+            </main>
+
+            <div class="action-buttons">
+                <button class="btn btn-secondary" onclick="declineOrder()">
+                    <i class="fas fa-times-circle"></i>
+                    Отклонить
+                </button>
+                <button class="btn btn-primary" onclick="acceptOrder()">
+                    <i class="fas fa-check-circle"></i>
+                    Принять заказ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentOrder = null;
+        let map = null;
+        let fromMarker = null;
+        let toMarker = null;
+        let routeLayer = null;
+
+        function goBack() {
+            window.location.href = 'orders';
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // Инициализация карты
+            initMap();
+
+            // Загружаем выбранный заказ
+            const selectedOrder = localStorage.getItem('selectedOrder');
+            if (!selectedOrder) {
+                alert('Заказ не выбран');
+                goBack();
+                return;
+            }
+
+            currentOrder = JSON.parse(selectedOrder);
+            loadOrderDetails(currentOrder);
+        });
+
+        function initMap() {
+            const defaultCenter = [62.027221, 129.733383]; // Якутск
+            map = L.map("map").setView(defaultCenter, 12);
+
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                maxZoom: 19,
+                attribution: false
+            }).addTo(map);
+
+            L.control.zoom({ position: 'topright' }).addTo(map);
+        }
+
+        function loadOrderDetails(order) {
+            // Обновляем информацию о заказе
+            document.getElementById("processingOrderId").textContent = `Заказ #${order.id}`;
+            document.getElementById("processingOrderDate").textContent = new Date(order.timestamp).toLocaleString("ru-RU");
+            document.getElementById("processingFromAddress").textContent = order.fromAddress;
+            document.getElementById("processingToAddress").textContent = order.toAddress;
+
+            updateOrderInfo(order);
+            processOrderAddresses(order);
+            optimizePriceWithML(order);
+        }
+
+        function updateOrderInfo(order) {
+            document.getElementById("fromAddress").value = order.fromAddress || "Не указан";
+            document.getElementById("toAddress").value = order.toAddress || "Не указан";
+            document.getElementById("passengers").textContent = (order.passengers || "1") + " чел.";
+            document.getElementById("pets").textContent = getPetsText(order.pets);
+            document.getElementById("time").textContent = getTimeText(order.time);
+            document.getElementById("baggage").textContent = getBaggageText(order.baggage);
+            document.getElementById("passengerPriceValue").textContent = (order.passengerPrice || "0") + " ₽";
+        }
+
+        function getPetsText(pets) {
+            const petsMap = { no: "Нет", small: "Маленькие", medium: "Средние", large: "Крупные" };
+            return petsMap[pets] || "Нет";
+        }
+
+        function getTimeText(time) {
+            const timeMap = { now: "Сейчас", "15min": "Через 15 мин", "30min": "Через 30 мин", "1hour": "Через 1 час" };
+            return timeMap[time] || "Сейчас";
+        }
+
+        function getBaggageText(baggage) {
+            const baggageMap = { no: "Нет", small: "Маленький", medium: "Средний", large: "Крупный" };
+            return baggageMap[baggage] || "Нет";
+        }
+
+        async function processOrderAddresses(order) {
+            try {
+                const fromCoords = await geocodeAddress(order.fromAddress);
+                const toCoords = await geocodeAddress(order.toAddress);
+
+                if (fromCoords && toCoords) {
+                    setMarkersOnMap(fromCoords, toCoords);
+                } else {
+                    document.getElementById("mlStatus").textContent += " (ошибка геокодирования)";
+                }
+            } catch (error) {
+                console.error("Ошибка обработки адресов:", error);
+            }
+        }
+
+        async function geocodeAddress(address) {
+            if (!address) return null;
+            try {
+                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1&addressdetails=0&accept-language=ru`;
+                const resp = await fetch(url);
+                const data = await resp.json();
+                if (!data.length) return null;
+                return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+            } catch {
+                return null;
+            }
+        }
+
+        function setMarkersOnMap(fromCoords, toCoords) {
+            if (fromMarker) map.removeLayer(fromMarker);
+            if (toMarker) map.removeLayer(toMarker);
+
+            fromMarker = L.marker(fromCoords, { draggable: false })
+                .addTo(map)
+                .bindPopup("Откуда")
+                .openPopup();
+
+            toMarker = L.marker(toCoords, { draggable: false })
+                .addTo(map)
+                .bindPopup("Куда")
+                .openPopup();
+
+            drawRoute(fromCoords, toCoords);
+        }
+
+        async function drawRoute(fromCoords, toCoords) {
+            try {
+                const route = await getRouteOSRM(fromCoords, toCoords);
+                if (route && route.geometry) {
+                    if (routeLayer) map.removeLayer(routeLayer);
+                    routeLayer = L.geoJSON(route.geometry, { style: { color: "blue", weight: 5 } });
+                    routeLayer.addTo(map);
+                    map.fitBounds(routeLayer.getBounds());
+                }
+            } catch (error) {
+                console.error("Ошибка отрисовки маршрута:", error);
+            }
+        }
+
+        async function getRouteOSRM(from, to) {
+            try {
+                const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
+                const resp = await fetch(url);
+                const data = await resp.json();
+                if (!data.routes || !data.routes.length) return null;
+                const r = data.routes[0];
+                return {
+                    distanceMeters: Math.round(r.distance),
+                    durationSeconds: Math.round(r.duration),
+                    geometry: r.geometry
+                };
+            } catch {
+                return null;
+            }
+        }
+
+        async function optimizePriceWithML(order) {
+            try {
+                document.getElementById("mlStatus").textContent = "Выполняется ML-анализ...";
+
+                const fromCoords = await geocodeAddress(order.fromAddress);
+                const toCoords = await geocodeAddress(order.toAddress);
+
+                if (!fromCoords || !toCoords) {
+                    throw new Error("Не удалось геокодировать адреса");
+                }
+
+                const route = await getRouteOSRM(fromCoords, toCoords);
+                if (!route) {
+                    throw new Error("Не удалось построить маршрут");
+                }
+
+                const mlData = {
+                    distance_in_meters: route.distanceMeters,
+                    duration_in_seconds: route.durationSeconds,
+                    pickup_in_meters: 500,
+                    pickup_in_seconds: 300,
+                    price_start_local: 100,
+                    driver_rating: 4.5,
+                    carname: "Toyota",
+                    carmodel: "Camry",
+                    platform: "android",
+                    current_price: parseFloat(order.passengerPrice) || 150,
+                    order_timestamp: new Date().toISOString()
+                };
+
+                const response = await fetch("/optimize", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(mlData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    updateMLResults(result.strategies);
+                    document.getElementById("mlStatus").textContent =
+                        "ML-модель проанализировала оптимальные цены на основе спроса и параметров заказа";
+                } else {
+                    throw new Error(result.message || "Ошибка ML-анализа");
+                }
+            } catch (error) {
+                console.error("Ошибка ML-анализа:", error);
+                document.getElementById("mlStatus").textContent = "Ошибка ML-анализа, используем базовые цены";
+                useFallbackPrices();
+            }
+        }
+
+        function updateMLResults(strategies) {
+            document.getElementById("currentPrice").textContent = Math.round(strategies.current?.price || 0) + " ₽";
+            document.getElementById("currentProb").textContent = Math.round((strategies.current?.probability || 0) * 100) + "%";
+            document.getElementById("currentIncome").textContent = Math.round(strategies.current?.income || 0);
+
+            document.getElementById("precisePrice").textContent = Math.round(strategies.precise?.price || 0) + " ₽";
+            document.getElementById("preciseProb").textContent = Math.round((strategies.precise?.probability || 0) * 100) + "%";
+            document.getElementById("preciseIncome").textContent = Math.round(strategies.precise?.income || 0);
+
+            document.getElementById("moderatePrice").textContent = Math.round(strategies.moderate?.price || 0) + " ₽";
+            document.getElementById("moderateProb").textContent = Math.round((strategies.moderate?.probability || 0) * 100) + "%";
+            document.getElementById("moderateIncome").textContent = Math.round(strategies.moderate?.income || 0);
+            document.getElementById("mlRecommendedPrice").textContent = Math.round(strategies.moderate?.price || 0) + " ₽";
+
+            document.getElementById("riskyPrice").textContent = Math.round(strategies.risky?.price || 0) + " ₽";
+            document.getElementById("riskyProb").textContent = Math.round((strategies.risky?.probability || 0) * 100) + "%";
+            document.getElementById("riskyIncome").textContent = Math.round(strategies.risky?.income || 0);
+        }
+
+        function useFallbackPrices() {
+            const basePrice = parseFloat(currentOrder?.passengerPrice) || 150;
+
+            const fallbackStrategies = {
+                current: { price: basePrice, probability: 0.6, income: basePrice * 0.8 },
+                precise: { price: basePrice * 0.7, probability: 0.8, income: basePrice * 0.7 * 0.9 },
+                moderate: { price: basePrice * 1.2, probability: 0.5, income: basePrice * 1.2 * 0.8 },
+                risky: { price: basePrice * 1.8, probability: 0.3, income: basePrice * 1.8 * 0.7 }
+            };
+
+            updateMLResults(fallbackStrategies);
+        }
+
+        function selectPriceOption(element) {
+            document.querySelectorAll(".price-option").forEach((card) => card.classList.remove("selected"));
+            element.classList.add("selected");
+
+            const price = element.querySelector('.strategy-price').textContent.replace(' ₽', '');
+            document.getElementById('driverPrice').value = price;
+            document.getElementById('yourPriceValue').textContent = price + ' ₽';
+        }
+
+        function acceptOrder() {
+            const driverPrice = document.getElementById("driverPrice").value;
+            alert(`Заказ #${currentOrder.id} принят по цене ${driverPrice} ₽!`);
+            goBack();
+        }
+
+        function declineOrder() {
+            alert(`Заказ #${currentOrder.id} отклонён.`);
+            goBack();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaxiApp - Заказ такси</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="phone-mockup">
+        <div class="phone-notch"></div>
+        <div class="app-container">
+            <div class="status-bar">
+                <div class="status-time">14:25</div>
+                <div class="status-icons">
+                    <i class="fas fa-signal"></i>
+                    <i class="fas fa-wifi"></i>
+                    <i class="fas fa-battery-three-quarters"></i>
+                </div>
+            </div>
+            
+            <header class="header">
+                <div class="header-container">
+                    <a href="orders" class="back-btn">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div class="logo">
+                        <div class="logo-icon">
+                            <i class="fas fa-taxi"></i>
+                        </div>
+                        <span>TaxiApp</span>
+                    </div>
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+            </header>
+
+            <main class="main-content">
+                <div>
+                    <h2 class="section-title">Заказ такси</h2>
+                    
+                    <div class="address-inputs">
+                        <div class="address-input">
+                            <i class="fas fa-circle" style="color: var(--success);"></i>
+                            <input type="text" placeholder="Откуда" id="fromAddress">
+                        </div>
+                        <div class="address-input">
+                            <i class="fas fa-flag" style="color: var(--secondary);"></i>
+                            <input type="text" placeholder="Куда" id="toAddress">
+                        </div>
+                    </div>
+                    
+                    <div class="order-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Пассажиры</span>
+                            <select class="detail-value" id="passengers">
+                                <option value="1">1 чел.</option>
+                                <option value="2" selected>2 чел.</option>
+                                <option value="3">3 чел.</option>
+                                <option value="4">4 чел.</option>
+                            </select>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Питомцы</span>
+                            <select class="detail-value" id="pets">
+                                <option value="no" selected>Нет</option>
+                                <option value="small">Маленькие</option>
+                                <option value="medium">Средние</option>
+                                <option value="large">Крупные</option>
+                            </select>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Время</span>
+                            <select class="detail-value" id="time">
+                                <option value="now" selected>Сейчас</option>
+                                <option value="15min">Через 15 мин</option>
+                                <option value="30min">Через 30 мин</option>
+                                <option value="1hour">Через 1 час</option>
+                            </select>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Багаж</span>
+                            <select class="detail-value" id="baggage">
+                                <option value="no" selected>Нет</option>
+                                <option value="small">Маленький</option>
+                                <option value="medium">Средний</option>
+                                <option value="large">Крупный</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="price-section">
+                    <div class="price-title">Ваша цена (₽)</div>
+                    <div class="price-input-container">
+                        <input type="number" class="price-amount" value="0" min="0" step="10" style="appearance: none;   -moz-appearance: textfield; /* Для Firefox */">
+                        <span class="currency">₽</span>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="ml-section">
+                    <div class="ml-header">
+                        <i class="fas fa-brain"></i>
+                        <span>Умное ценообразование ML</span>
+                    </div>
+                    <div class="ml-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span>ML-модель рассчитала оптимальные цены на основе текущего спроса и погодных условий</span>
+                    </div>
+                </div>
+
+                
+
+                <div class="map-section">
+                    <div class="map-header">
+                        <div>
+                            <i class="fas fa-map"></i>
+                            <span>Карта</span>
+                        </div>
+                        <button id="toggleMapBtn" class="btn btn-secondary" style="padding: 6px 10px; font-size: 12px;">
+                            <i class="fas fa-expand-arrows-alt"></i>
+                        </button>
+                    </div>
+                    <div class="map-container">
+                        <div id="map"></div>
+                    </div>
+                    <!-- Элементы управления под картой -->
+                    <div class="map-controls">
+                        <div class="map-hint">
+                            <i class="fas fa-info-circle"></i>
+                            Нажмите на карту, чтобы указать точки маршрута
+                        </div>
+                        <button id="clearPointsBtn" class="btn btn-secondary" style="padding: 6px 10px; font-size: 12px;">
+                            <i class="fas fa-eraser"></i>
+                            Очистить
+                        </button>
+                    </div>
+                </div>
+            </main>
+
+            <div class="action-buttons">
+                <button class="btn btn-secondary" onclick="calculatePrice()">
+                    <i class="fas fa-calculator"></i>
+                    Рассчитать
+                </button>
+                <button class="btn btn-primary" onclick="confirmOrder()">
+                    <i class="fas fa-check-circle"></i>
+                    Подтвердить заказ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="/static/script.js"></script>
+</body>
+</html>
